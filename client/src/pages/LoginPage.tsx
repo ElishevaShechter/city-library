@@ -108,6 +108,9 @@ const LoginPage = () => {
           אין לך חשבון עדיין?{' '}
           <Link to="/signup">הרשמה</Link>
         </div>
+        <div className="auth-footer" style={{ marginTop: '0.5rem' }}>
+          <Link to="/forgot-password">שכחת סיסמה?</Link>
+        </div>
       </div>
     </div>
   )
