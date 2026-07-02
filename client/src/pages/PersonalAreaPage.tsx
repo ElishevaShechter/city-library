@@ -1,8 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Navigate, Link } from 'react-router-dom'
 import { useAppSelector, useAppDispatch } from '../hooks/useAppDispatch'
-import { fetchMyLoans } from '../store/loansSlice'
-import type { Book } from '../types'
+import { fetchMyLoans, returnBook } from '../store/loansSlice'
+import BookModal from '../components/BookModal'
+import type { Book, Loan } from '../types'
 import './PersonalAreaPage.css'
 
 const fmt = (dateStr: string) =>
@@ -13,6 +14,10 @@ const PersonalAreaPage = () => {
   const { isAuthenticated, user } = useAppSelector(s => s.auth)
   const { loans, loading } = useAppSelector(s => s.loans)
 
+  const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null)
+  const [returningId, setReturningId]   = useState<string | null>(null)
+  const [successMsg, setSuccessMsg]     = useState<string | null>(null)
+
   useEffect(() => {
     if (isAuthenticated) dispatch(fetchMyLoans())
   }, [dispatch, isAuthenticated])
@@ -20,6 +25,24 @@ const PersonalAreaPage = () => {
   if (!isAuthenticated) return <Navigate to="/login" replace />
 
   const activeCount = loans.filter(l => l.status === 'active').length
+
+  const handleReturn = async (loanId: string) => {
+    setReturningId(loanId)
+    const result = await dispatch(returnBook(loanId))
+    setReturningId(null)
+    if (returnBook.fulfilled.match(result)) {
+      const book = result.payload.book
+      const title = typeof book === 'string' ? 'הספר' : (book as Book).title
+      setSuccessMsg(`"${title}" הוחזר בהצלחה`)
+      setSelectedLoan(null)
+    }
+  }
+
+  const modalBook = selectedLoan
+    ? (typeof selectedLoan.book === 'string'
+        ? null
+        : selectedLoan.book as Book)
+    : null
 
   return (
     <main className="personal-page">
@@ -41,11 +64,16 @@ const PersonalAreaPage = () => {
         </div>
       </div>
 
+      {successMsg && (
+        <div className="personal-notification success">
+          <span>{successMsg}</span>
+          <button onClick={() => setSuccessMsg(null)}>✕</button>
+        </div>
+      )}
+
       <h2 className="loans-section-title">
         ההשאלות שלי
-        {loans.length > 0 && (
-          <span className="loans-count-badge">{loans.length}</span>
-        )}
+        {loans.length > 0 && <span className="loans-count-badge">{loans.length}</span>}
       </h2>
 
       {loading ? (
@@ -66,13 +94,19 @@ const PersonalAreaPage = () => {
                 <th>תאריך השאלה</th>
                 <th>תאריך החזרה צפוי</th>
                 <th>סטטוס</th>
+                <th>פעולה</th>
               </tr>
             </thead>
             <tbody>
               {loans.map(loan => {
                 const book = loan.book as Book
+                const isActive = loan.status === 'active'
                 return (
-                  <tr key={loan._id}>
+                  <tr
+                    key={loan._id}
+                    className={isActive ? 'loan-row-clickable' : ''}
+                    onClick={() => isActive && typeof loan.book !== 'string' && setSelectedLoan(loan)}
+                  >
                     <td>
                       <div className="loan-book-title">
                         {typeof book === 'string' ? book : book.title}
@@ -85,8 +119,19 @@ const PersonalAreaPage = () => {
                     <td>{fmt(loan.dueDate)}</td>
                     <td>
                       <span className={`loan-status ${loan.status}`}>
-                        {loan.status === 'active' ? 'מושאל' : 'הוחזר'}
+                        {isActive ? 'מושאל' : 'הוחזר'}
                       </span>
+                    </td>
+                    <td onClick={e => e.stopPropagation()}>
+                      {isActive && (
+                        <button
+                          className="return-btn"
+                          disabled={returningId === loan._id}
+                          onClick={() => handleReturn(loan._id)}
+                        >
+                          {returningId === loan._id ? 'מעבד...' : 'החזר'}
+                        </button>
+                      )}
                     </td>
                   </tr>
                 )
@@ -94,6 +139,16 @@ const PersonalAreaPage = () => {
             </tbody>
           </table>
         </div>
+      )}
+
+      {selectedLoan && modalBook && (
+        <BookModal
+          book={modalBook}
+          onClose={() => setSelectedLoan(null)}
+          activeLoanId={selectedLoan._id}
+          onReturn={handleReturn}
+          returning={returningId === selectedLoan._id}
+        />
       )}
     </main>
   )

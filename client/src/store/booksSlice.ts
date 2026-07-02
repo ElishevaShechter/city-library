@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import type { Book } from '../types'
 import * as booksApi from '../api/booksApi'
-import { borrowBook } from './loansSlice'
+import { borrowBook, returnBook } from './loansSlice'
 
 interface BooksState {
   books: Book[]
@@ -49,13 +49,19 @@ const booksSlice = createSlice({
       .addCase(fetchBookById.pending, (state) => { state.loading = true; state.error = null })
       .addCase(fetchBookById.fulfilled, (state, action) => { state.loading = false; state.selectedBook = action.payload })
       .addCase(fetchBookById.rejected, (state, action) => { state.loading = false; state.error = action.error.message ?? 'שגיאה בטעינת הספר' })
-      // מעדכן availableCopies מקומית ברגע שהשאלה מצליחה
       .addCase(borrowBook.fulfilled, (state, action) => {
         const bookId = typeof action.payload.book === 'string'
           ? action.payload.book
           : action.payload.book._id
         const book = state.books.find(b => b._id === bookId)
         if (book) book.availableCopies -= 1
+      })
+      .addCase(returnBook.fulfilled, (state, action) => {
+        const bookId = typeof action.payload.book === 'string'
+          ? action.payload.book
+          : action.payload.book._id
+        const book = state.books.find(b => b._id === bookId)
+        if (book) book.availableCopies += 1
       })
   },
 })

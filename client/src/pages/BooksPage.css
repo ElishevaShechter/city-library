@@ -350,3 +350,48 @@
   line-height: 1.7;
   font-size: 0.925rem;
 }
+
+/* Modal action buttons */
+.modal-actions {
+  margin-top: 1.25rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.modal-btn {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.modal-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.modal-btn-borrow {
+  background: #4a6fa5;
+  color: white;
+}
+
+.modal-btn-borrow:hover:not(:disabled) {
+  background: #3a5d8e;
+  transform: translateY(-1px);
+}
+
+.modal-btn-return {
+  background: #e8f7ee;
+  color: #2e7d52;
+  border: 1.5px solid #b2e8cc;
+}
+
+.modal-btn-return:hover:not(:disabled) {
+  background: #d4f0e0;
+  transform: translateY(-1px);
+}

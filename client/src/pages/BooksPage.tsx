@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAppSelector, useAppDispatch } from '../hooks/useAppDispatch'
 import { fetchBooks } from '../store/booksSlice'
-import { borrowBook, clearBorrowError } from '../store/loansSlice'
+import { borrowBook, returnBook, clearBorrowError } from '../store/loansSlice'
 import BookCard from '../components/BookCard'
 import BookModal from '../components/BookModal'
-import type { Book, Category } from '../types'
+import type { Book, Category, Loan } from '../types'
 import './BooksPage.css'
 
 type SearchBy = 'all' | 'title' | 'author' | 'category'
@@ -21,22 +21,26 @@ const BooksPage = () => {
   const dispatch = useAppDispatch()
   const { isAuthenticated } = useAppSelector(s => s.auth)
   const { books, loading, error } = useAppSelector(s => s.books)
-  const { borrowError } = useAppSelector(s => s.loans)
+  const { loans, borrowError } = useAppSelector(s => s.loans)
 
-  const [query, setQuery]       = useState('')
-  const [searchBy, setSearchBy] = useState<SearchBy>('all')
-  const [selected, setSelected] = useState<Book | null>(null)
+  const [query, setQuery]         = useState('')
+  const [searchBy, setSearchBy]   = useState<SearchBy>('all')
+  const [selected, setSelected]   = useState<Book | null>(null)
   const [borrowingId, setBorrowingId] = useState<string | null>(null)
+  const [returningId, setReturningId] = useState<string | null>(null)
   const [successMsg, setSuccessMsg]   = useState<string | null>(null)
 
-  useEffect(() => {
-    dispatch(fetchBooks())
-  }, [dispatch])
+  useEffect(() => { dispatch(fetchBooks()) }, [dispatch])
 
-  // כל ה-hooks מעל — early returns מתחת
   if (!isAuthenticated) return <Navigate to="/login" replace />
   if (loading) return <div className="books-page"><p className="results-count">טוען ספרים...</p></div>
   if (error)   return <div className="books-page"><p className="results-count">שגיאה: {error}</p></div>
+
+  const getActiveLoan = (bookId: string): Loan | undefined =>
+    loans.find(l => {
+      const loanBookId = typeof l.book === 'string' ? l.book : l.book._id
+      return loanBookId === bookId && l.status === 'active'
+    })
 
   const handleBorrow = async (bookId: string) => {
     setBorrowingId(bookId)
@@ -47,6 +51,19 @@ const BooksPage = () => {
     if (borrowBook.fulfilled.match(result)) {
       const title = books.find(b => b._id === bookId)?.title ?? 'הספר'
       setSuccessMsg(`"${title}" הושאל בהצלחה! תאריך החזרה: ${new Date(result.payload.dueDate).toLocaleDateString('he-IL')}`)
+      setSelected(null)
+    }
+  }
+
+  const handleReturn = async (loanId: string) => {
+    setReturningId(loanId)
+    const result = await dispatch(returnBook(loanId))
+    setReturningId(null)
+    if (returnBook.fulfilled.match(result)) {
+      const bookId = typeof result.payload.book === 'string' ? result.payload.book : result.payload.book._id
+      const title = books.find(b => b._id === bookId)?.title ?? 'הספר'
+      setSuccessMsg(`"${title}" הוחזר בהצלחה`)
+      setSelected(null)
     }
   }
 
@@ -67,6 +84,8 @@ const BooksPage = () => {
     }
   })
 
+  const selectedLoan = selected ? getActiveLoan(selected._id) : undefined
+
   return (
     <main className="books-page">
       <h1 className="books-heading">קטלוג הספרים</h1>
@@ -77,7 +96,6 @@ const BooksPage = () => {
           <button onClick={() => dispatch(clearBorrowError())}>✕</button>
         </div>
       )}
-
       {successMsg && (
         <div className="borrow-notification success">
           <span>{successMsg}</span>
@@ -129,7 +147,17 @@ const BooksPage = () => {
         </>
       )}
 
-      {selected && <BookModal book={selected} onClose={() => setSelected(null)} />}
+      {selected && (
+        <BookModal
+          book={selected}
+          onClose={() => setSelected(null)}
+          activeLoanId={selectedLoan?._id}
+          onBorrow={() => handleBorrow(selected._id)}
+          onReturn={handleReturn}
+          borrowing={borrowingId === selected._id}
+          returning={!!returningId && returningId === selectedLoan?._id}
+        />
+      )}
     </main>
   )
 }
