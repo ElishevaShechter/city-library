@@ -7,23 +7,24 @@ interface Props {
   borrowing?: boolean
 }
 
-const categoryColors: Record<string, string> = {
-  'פנטזיה':      '#7c3aed',
-  'מדע בדיוני':  '#0891b2',
-  'מתח':         '#dc2626',
-  'היסטוריה':    '#b45309',
-  'ילדים':       '#16a34a',
-  'רומן':        '#db2777',
+const categoryGradients: Record<string, string> = {
+  'פנטזיה':      'linear-gradient(145deg, #a594d4, #7a6eb0)',
+  'מדע בדיוני':  'linear-gradient(145deg, #6aaec8, #4a8aaa)',
+  'מתח':         'linear-gradient(145deg, #c98888, #a86060)',
+  'היסטוריה':    'linear-gradient(145deg, #c9a876, #a88050)',
+  'ילדים':       'linear-gradient(145deg, #7ec4a0, #52a078)',
+  'רומן':        'linear-gradient(145deg, #c898b8, #a87090)',
 }
+const defaultGradient = 'linear-gradient(145deg, #94a8c4, #6a84a8)'
 
 const BookCard = ({ book, onClick, onBorrow, borrowing }: Props) => {
   const categoryName = typeof book.category === 'object' ? (book.category as Category).name : ''
   const isAvailable = book.availableCopies > 0
-  const color = categoryColors[categoryName] ?? '#64748b'
+  const gradient = categoryGradients[categoryName] ?? defaultGradient
 
   return (
     <div className="book-card" onClick={() => onClick(book)}>
-      <div className="book-cover" style={{ backgroundColor: color }}>
+      <div className="book-cover" style={{ background: gradient }}>
         <span className="book-cover-text">{book.title}</span>
       </div>
       <div className="book-info">

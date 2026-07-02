@@ -49,6 +49,43 @@
   font-weight: 600;
 }
 
+/* Loans section header */
+.loans-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.loans-section-title {
+  margin-bottom: 0 !important;
+}
+
+.reset-btn {
+  padding: 0.45rem 1.1rem;
+  border: 1.5px solid #dce4f0;
+  border-radius: 8px;
+  background: white;
+  color: #6678a0;
+  font-size: 0.825rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.reset-btn:hover:not(:disabled) {
+  border-color: #4a6fa5;
+  color: #4a6fa5;
+}
+
+.reset-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 /* Loans section */
 .loans-section-title {
   font-size: 1.2rem;

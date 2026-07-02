@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getBooks, getBookById, createBook, updateBook, deleteBook } = require('../controllers/bookController');
+const { getBooks, getBookById, createBook, updateBook, deleteBook, resetAvailability } = require('../controllers/bookController');
 const { protect, adminOnly } = require('../middleware/authMiddleware');
 
 /**
@@ -141,5 +141,7 @@ router.patch('/:id', protect, adminOnly, updateBook);
  *         description: Book not found
  */
 router.delete('/:id', protect, adminOnly, deleteBook);
+
+router.post('/reset-availability', protect, adminOnly, resetAvailability);
 
 module.exports = router;

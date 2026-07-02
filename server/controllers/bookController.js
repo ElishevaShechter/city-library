@@ -94,4 +94,19 @@ const deleteBook = async (req, res) => {
     }
 };
 
-module.exports = { getBooks, getBookById, createBook, updateBook, deleteBook };
+// POST /api/books/reset-availability  (admin only)
+const resetAvailability = async (req, res) => {
+    try {
+        const Loan = require('../models/Loan');
+        const books = await Book.find({});
+        await Promise.all(books.map(b =>
+            Book.findByIdAndUpdate(b._id, { availableCopies: b.totalCopies })
+        ));
+        await Loan.updateMany({ status: 'active' }, { status: 'returned', returnDate: new Date() });
+        res.json({ message: 'All books reset to full availability' });
+    } catch (err) {
+        res.status(500).json({ message: 'Server error', error: err.message });
+    }
+};
+
+module.exports = { getBooks, getBookById, createBook, updateBook, deleteBook, resetAvailability };

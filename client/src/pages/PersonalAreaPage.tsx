@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react'
 import { Navigate, Link } from 'react-router-dom'
 import { useAppSelector, useAppDispatch } from '../hooks/useAppDispatch'
 import { fetchMyLoans, returnBook } from '../store/loansSlice'
+import { fetchBooks } from '../store/booksSlice'
 import BookModal from '../components/BookModal'
+import api from '../api'
 import type { Book, Loan } from '../types'
 import './PersonalAreaPage.css'
 
@@ -17,6 +19,7 @@ const PersonalAreaPage = () => {
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null)
   const [returningId, setReturningId]   = useState<string | null>(null)
   const [successMsg, setSuccessMsg]     = useState<string | null>(null)
+  const [resetting, setResetting]       = useState(false)
 
   useEffect(() => {
     if (isAuthenticated) dispatch(fetchMyLoans())
@@ -38,10 +41,26 @@ const PersonalAreaPage = () => {
     }
   }
 
-  const modalBook = selectedLoan
-    ? (typeof selectedLoan.book === 'string'
-        ? null
-        : selectedLoan.book as Book)
+  const handleResetAll = async () => {
+    setResetting(true)
+    try {
+      await api.post('/books/reset-availability')
+      await dispatch(fetchMyLoans())
+      await dispatch(fetchBooks())
+      setSuccessMsg('כל הספרים אופסו לזמינות מלאה')
+    } finally {
+      setResetting(false)
+    }
+  }
+
+  const openLoanModal = (loan: Loan) => {
+    if (loan.status !== 'active') return
+    if (typeof loan.book === 'string') return
+    setSelectedLoan(loan)
+  }
+
+  const modalBook = selectedLoan && typeof selectedLoan.book !== 'string'
+    ? selectedLoan.book as Book
     : null
 
   return (
@@ -71,10 +90,21 @@ const PersonalAreaPage = () => {
         </div>
       )}
 
-      <h2 className="loans-section-title">
-        ההשאלות שלי
-        {loans.length > 0 && <span className="loans-count-badge">{loans.length}</span>}
-      </h2>
+      <div className="loans-section-header">
+        <h2 className="loans-section-title">
+          ההשאלות שלי
+          {loans.length > 0 && <span className="loans-count-badge">{loans.length}</span>}
+        </h2>
+        {user?.role === 'admin' && (
+          <button
+            className="reset-btn"
+            disabled={resetting}
+            onClick={handleResetAll}
+          >
+            {resetting ? 'מאפס...' : 'אפס זמינות ספרים'}
+          </button>
+        )}
+      </div>
 
       {loading ? (
         <p className="loans-loading">טוען השאלות...</p>
@@ -105,7 +135,7 @@ const PersonalAreaPage = () => {
                   <tr
                     key={loan._id}
                     className={isActive ? 'loan-row-clickable' : ''}
-                    onClick={() => isActive && typeof loan.book !== 'string' && setSelectedLoan(loan)}
+                    onClick={isActive ? () => openLoanModal(loan) : undefined}
                   >
                     <td>
                       <div className="loan-book-title">
