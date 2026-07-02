@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import BooksPage from './pages/BooksPage'
+import PersonalAreaPage from './pages/PersonalAreaPage'
 import NotFoundPage from './pages/NotFoundPage'
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
           element={isAuthenticated ? <Navigate to="/" replace /> : <SignupPage />}
         />
         <Route path="/books" element={<BooksPage />} />
+        <Route path="/personal-area" element={<PersonalAreaPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

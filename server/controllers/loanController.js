@@ -25,6 +25,12 @@ const createLoan = async (req, res) => {
             return res.status(400).json({ message: 'You already have this book on loan' });
         }
 
+        // בודק מגבלת 5 ספרים בו-זמנית
+        const activeCount = await Loan.countDocuments({ user: req.user.id, status: 'active' });
+        if (activeCount >= 5) {
+            return res.status(400).json({ message: 'Loan limit reached' });
+        }
+
         // dueDate = 14 יום מהיום
         const dueDate = new Date();
         dueDate.setDate(dueDate.getDate() + 14);

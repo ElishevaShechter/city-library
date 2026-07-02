@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAppSelector, useAppDispatch } from '../hooks/useAppDispatch'
 import { fetchBooks } from '../store/booksSlice'
+import { borrowBook, clearBorrowError } from '../store/loansSlice'
 import BookCard from '../components/BookCard'
 import BookModal from '../components/BookModal'
 import type { Book, Category } from '../types'
@@ -20,9 +21,13 @@ const BooksPage = () => {
   const dispatch = useAppDispatch()
   const { isAuthenticated } = useAppSelector(s => s.auth)
   const { books, loading, error } = useAppSelector(s => s.books)
+  const { borrowError } = useAppSelector(s => s.loans)
+
   const [query, setQuery]       = useState('')
   const [searchBy, setSearchBy] = useState<SearchBy>('all')
   const [selected, setSelected] = useState<Book | null>(null)
+  const [borrowingId, setBorrowingId] = useState<string | null>(null)
+  const [successMsg, setSuccessMsg]   = useState<string | null>(null)
 
   useEffect(() => {
     dispatch(fetchBooks())
@@ -32,6 +37,18 @@ const BooksPage = () => {
   if (!isAuthenticated) return <Navigate to="/login" replace />
   if (loading) return <div className="books-page"><p className="results-count">טוען ספרים...</p></div>
   if (error)   return <div className="books-page"><p className="results-count">שגיאה: {error}</p></div>
+
+  const handleBorrow = async (bookId: string) => {
+    setBorrowingId(bookId)
+    dispatch(clearBorrowError())
+    setSuccessMsg(null)
+    const result = await dispatch(borrowBook(bookId))
+    setBorrowingId(null)
+    if (borrowBook.fulfilled.match(result)) {
+      const title = books.find(b => b._id === bookId)?.title ?? 'הספר'
+      setSuccessMsg(`"${title}" הושאל בהצלחה! תאריך החזרה: ${new Date(result.payload.dueDate).toLocaleDateString('he-IL')}`)
+    }
+  }
 
   const filtered = books.filter(book => {
     const q = query.trim().toLowerCase()
@@ -53,6 +70,20 @@ const BooksPage = () => {
   return (
     <main className="books-page">
       <h1 className="books-heading">קטלוג הספרים</h1>
+
+      {borrowError && (
+        <div className="borrow-notification error">
+          <span>{borrowError}</span>
+          <button onClick={() => dispatch(clearBorrowError())}>✕</button>
+        </div>
+      )}
+
+      {successMsg && (
+        <div className="borrow-notification success">
+          <span>{successMsg}</span>
+          <button onClick={() => setSuccessMsg(null)}>✕</button>
+        </div>
+      )}
 
       <div className="search-bar">
         <input
@@ -86,7 +117,13 @@ const BooksPage = () => {
           <p className="results-count">{filtered.length} ספרים</p>
           <div className="books-grid">
             {filtered.map(book => (
-              <BookCard key={book._id} book={book} onClick={setSelected} />
+              <BookCard
+                key={book._id}
+                book={book}
+                onClick={setSelected}
+                onBorrow={handleBorrow}
+                borrowing={borrowingId === book._id}
+              />
             ))}
           </div>
         </>

@@ -3,6 +3,8 @@ import type { Book, Category } from '../types'
 interface Props {
   book: Book
   onClick: (book: Book) => void
+  onBorrow?: (bookId: string) => void
+  borrowing?: boolean
 }
 
 const categoryColors: Record<string, string> = {
@@ -14,7 +16,7 @@ const categoryColors: Record<string, string> = {
   'רומן':        '#db2777',
 }
 
-const BookCard = ({ book, onClick }: Props) => {
+const BookCard = ({ book, onClick, onBorrow, borrowing }: Props) => {
   const categoryName = typeof book.category === 'object' ? (book.category as Category).name : ''
   const isAvailable = book.availableCopies > 0
   const color = categoryColors[categoryName] ?? '#64748b'
@@ -34,6 +36,13 @@ const BookCard = ({ book, onClick }: Props) => {
         <span className={`availability-badge ${isAvailable ? 'available' : 'borrowed'}`}>
           {isAvailable ? `זמין (${book.availableCopies})` : 'מושאל'}
         </span>
+        <button
+          className={`borrow-btn ${!isAvailable ? 'borrow-btn--unavailable' : ''}`}
+          disabled={!isAvailable || borrowing}
+          onClick={e => { e.stopPropagation(); onBorrow?.(book._id) }}
+        >
+          {borrowing ? 'מעבד...' : isAvailable ? 'השאל' : 'לא זמין'}
+        </button>
       </div>
     </div>
   )
