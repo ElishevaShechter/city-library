@@ -3,6 +3,7 @@ import authReducer from './authSlice'
 import booksReducer from './booksSlice'
 import categoriesReducer from './categoriesSlice'
 import loansReducer from './loansSlice'
+import membersReducer from './membersSlice'
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     books: booksReducer,
     categories: categoriesReducer,
     loans: loansReducer,
+    members: membersReducer,
   },
 })
 

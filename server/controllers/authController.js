@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Counter = require('../models/Counter');
 
 // יוצר JWT Token עבור משתמש
 const generateToken = (user) => {
@@ -9,6 +10,16 @@ const generateToken = (user) => {
         process.env.JWT_SECRET,
         { expiresIn: '7d' }
     );
+};
+
+// מקצה מספר חבר רץ וייחודי בצורה אטומית (עוקף race conditions בין הרשמות מקבילות)
+const getNextMemberNumber = async () => {
+    const counter = await Counter.findByIdAndUpdate(
+        'memberNumber',
+        { $inc: { seq: 1 } },
+        { new: true, upsert: true }
+    );
+    return counter.seq;
 };
 
 // POST /api/auth/signup
@@ -28,11 +39,14 @@ const signup = async (req, res) => {
         // אם נשלח קוד מנהל תקין (מוגדר ב-ENV), החשבון נוצר כ-admin
         const isAdmin = !!process.env.ADMIN_SIGNUP_CODE && adminCode === process.env.ADMIN_SIGNUP_CODE;
 
+        const memberNumber = await getNextMemberNumber();
+
         // יצירת המשתמש
         const user = await User.create({
             name,
             email,
             password: hashedPassword,
+            memberNumber,
             ...(isAdmin && { role: 'admin' }),
         });
 

@@ -22,6 +22,17 @@ const userSchema = new mongoose.Schema({
         enum: ['user', 'admin'],
         default: 'user',
     },
+    memberNumber: {
+        type: Number,
+        unique: true,
+        sparse: true,
+    },
+    nationalId: {
+        type: String,
+        trim: true,
+        unique: true,
+        sparse: true,
+    },
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

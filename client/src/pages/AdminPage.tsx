@@ -3,12 +3,13 @@ import { Navigate } from 'react-router-dom'
 import { useAppSelector, useAppDispatch } from '../hooks/useAppDispatch'
 import { fetchAllLoans, returnBook, extendLoan, clearExtendError } from '../store/loansSlice'
 import AdminCatalogPanel from '../components/AdminCatalogPanel'
+import AdminMembersPanel from '../components/AdminMembersPanel'
 import '../pages/PersonalAreaPage.css'
 import './AdminPage.css'
 
 const MAX_EXTENSIONS = 2
 
-type Tab = 'loans' | 'catalog'
+type Tab = 'loans' | 'catalog' | 'members'
 
 const fmt = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric' })
@@ -52,7 +53,7 @@ const AdminPage = () => {
   return (
     <main className="personal-page">
       <h1 className="personal-heading">ניהול הספרייה</h1>
-      <p className="personal-welcome">ניהול השאלות וקטלוג הספרים</p>
+      <p className="personal-welcome">ניהול השאלות, קטלוג הספרים וחברי הספרייה</p>
 
       <div className="admin-tabs">
         <button
@@ -66,6 +67,12 @@ const AdminPage = () => {
           onClick={() => setTab('catalog')}
         >
           קטלוג ספרים
+        </button>
+        <button
+          className={`admin-tab-btn ${tab === 'members' ? 'active' : ''}`}
+          onClick={() => setTab('members')}
+        >
+          ניהול חברים
         </button>
       </div>
 
@@ -168,8 +175,10 @@ const AdminPage = () => {
             </div>
           )}
         </>
-      ) : (
+      ) : tab === 'catalog' ? (
         <AdminCatalogPanel />
+      ) : (
+        <AdminMembersPanel />
       )}
     </main>
   )

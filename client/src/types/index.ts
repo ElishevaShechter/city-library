@@ -58,6 +58,24 @@ export interface Loan {
   updatedAt: string
 }
 
+export interface MemberSearchResult {
+  _id: string
+  name: string
+  email: string
+  memberNumber: number | null
+  role: 'user' | 'admin'
+  status: 'active' | 'inactive'
+}
+
+export interface MemberProfile extends MemberSearchResult {
+  nationalId: string | null
+}
+
+export interface MemberDetail extends MemberProfile {
+  currentLoans: Loan[]
+  loanHistory: Loan[]
+}
+
 export interface LoginCredentials {
   email: string
   password: string
