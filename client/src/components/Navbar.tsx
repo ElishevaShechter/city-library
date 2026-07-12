@@ -14,6 +14,7 @@ const Navbar = () => {
           <>
             <Link to="/books">ספרים</Link>
             <Link to="/personal-area">אזור אישי</Link>
+            {user?.role === 'admin' && <Link to="/admin">ניהול</Link>}
             <span className="nav-greeting">שלום, {user?.name}</span>
             <button className="nav-btn-logout" onClick={() => dispatch(logout())}>
               יציאה

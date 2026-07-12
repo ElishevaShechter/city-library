@@ -9,6 +9,8 @@ interface AuthState {
   isAuthenticated: boolean
   loading: boolean
   error: string | null
+  promoting: boolean
+  promoteError: string | null
 }
 
 const initialState: AuthState = {
@@ -17,6 +19,8 @@ const initialState: AuthState = {
   isAuthenticated: !!localStorage.getItem('token'),
   loading: false,
   error: null,
+  promoting: false,
+  promoteError: null,
 }
 
 // Server returns { id, name, email, role } — normalize to User shape ({ _id, ... })
@@ -68,6 +72,23 @@ export const signupUser = createAsyncThunk(
   }
 )
 
+export const promoteToAdmin = createAsyncThunk(
+  'auth/promote',
+  async (adminCode: string, { rejectWithValue }) => {
+    try {
+      const res = await authApi.promote(adminCode)
+      return { token: res.data.token, user: normalizeUser(res.data.user) }
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        const msg = err.response?.data?.message
+        if (msg === 'Invalid admin code') return rejectWithValue('קוד המנהל שגוי')
+        return rejectWithValue(msg ?? 'שגיאה בשדרוג ההרשאה')
+      }
+      return rejectWithValue('שגיאה בשדרוג ההרשאה')
+    }
+  }
+)
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -87,6 +108,9 @@ const authSlice = createSlice({
     },
     clearAuthError(state) {
       state.error = null
+    },
+    clearPromoteError(state) {
+      state.promoteError = null
     },
   },
   extraReducers: (builder) => {
@@ -121,8 +145,22 @@ const authSlice = createSlice({
         state.loading = false
         state.error = action.payload as string
       })
+      .addCase(promoteToAdmin.pending, (state) => {
+        state.promoting = true
+        state.promoteError = null
+      })
+      .addCase(promoteToAdmin.fulfilled, (state, action) => {
+        state.promoting = false
+        state.user = action.payload.user
+        state.token = action.payload.token
+        persistAuth(action.payload.token, action.payload.user)
+      })
+      .addCase(promoteToAdmin.rejected, (state, action) => {
+        state.promoting = false
+        state.promoteError = action.payload as string
+      })
   },
 })
 
-export const { setCredentials, logout, clearAuthError } = authSlice.actions
+export const { setCredentials, logout, clearAuthError, clearPromoteError } = authSlice.actions
 export default authSlice.reducer

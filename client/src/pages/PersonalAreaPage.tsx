@@ -1,25 +1,31 @@
-import { useEffect, useState } from 'react'
-import { Navigate, Link } from 'react-router-dom'
+import { useEffect, useState, FormEvent } from 'react'
+import { Navigate, Link, useNavigate } from 'react-router-dom'
 import { useAppSelector, useAppDispatch } from '../hooks/useAppDispatch'
-import { fetchMyLoans, returnBook } from '../store/loansSlice'
+import { fetchMyLoans, returnBook, extendLoan, clearExtendError } from '../store/loansSlice'
 import { fetchBooks } from '../store/booksSlice'
+import { promoteToAdmin, clearPromoteError } from '../store/authSlice'
 import BookModal from '../components/BookModal'
 import api from '../api'
 import type { Book, Loan } from '../types'
 import './PersonalAreaPage.css'
+
+const MAX_EXTENSIONS = 2
 
 const fmt = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric' })
 
 const PersonalAreaPage = () => {
   const dispatch = useAppDispatch()
-  const { isAuthenticated, user } = useAppSelector(s => s.auth)
-  const { loans, loading } = useAppSelector(s => s.loans)
+  const navigate = useNavigate()
+  const { isAuthenticated, user, promoting, promoteError } = useAppSelector(s => s.auth)
+  const { loans, loading, extendError } = useAppSelector(s => s.loans)
 
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null)
   const [returningId, setReturningId]   = useState<string | null>(null)
+  const [extendingId, setExtendingId]   = useState<string | null>(null)
   const [successMsg, setSuccessMsg]     = useState<string | null>(null)
   const [resetting, setResetting]       = useState(false)
+  const [adminCode, setAdminCode]       = useState('')
 
   useEffect(() => {
     if (isAuthenticated) dispatch(fetchMyLoans())
@@ -35,9 +41,29 @@ const PersonalAreaPage = () => {
     setReturningId(null)
     if (returnBook.fulfilled.match(result)) {
       const book = result.payload.book
-      const title = typeof book === 'string' ? 'הספר' : (book as Book).title
+      const title = !book ? 'הספר' : typeof book === 'string' ? 'הספר' : book.title
       setSuccessMsg(`"${title}" הוחזר בהצלחה`)
       setSelectedLoan(null)
+    }
+  }
+
+  const handleExtend = async (loanId: string) => {
+    setExtendingId(loanId)
+    dispatch(clearExtendError())
+    const result = await dispatch(extendLoan(loanId))
+    setExtendingId(null)
+    if (extendLoan.fulfilled.match(result)) {
+      const book = result.payload.book
+      const title = !book ? 'הספר' : typeof book === 'string' ? 'הספר' : book.title
+      setSuccessMsg(`ההשאלה של "${title}" הוארכה עד ${fmt(result.payload.dueDate)}`)
+    }
+  }
+
+  const handlePromote = async (e: FormEvent) => {
+    e.preventDefault()
+    const result = await dispatch(promoteToAdmin(adminCode.trim()))
+    if (promoteToAdmin.fulfilled.match(result)) {
+      navigate('/admin')
     }
   }
 
@@ -55,7 +81,7 @@ const PersonalAreaPage = () => {
 
   const openLoanModal = (loan: Loan) => {
     if (loan.status !== 'active') return
-    if (typeof loan.book === 'string') return
+    if (!loan.book || typeof loan.book === 'string') return
     setSelectedLoan(loan)
   }
 
@@ -83,6 +109,40 @@ const PersonalAreaPage = () => {
         </div>
       </div>
 
+      {user?.role !== 'admin' && (
+        <form className="promote-card" onSubmit={handlePromote}>
+          <div className="promote-info">
+            <span className="promote-title">כניסה כמנהל</span>
+            <span className="promote-hint">הזן/י קוד מנהל כדי לשדרג את החשבון ולעבור לניהול</span>
+          </div>
+          <div className="promote-controls">
+            <input
+              type="password"
+              value={adminCode}
+              onChange={e => setAdminCode(e.target.value)}
+              placeholder="קוד מנהל"
+              className="promote-input"
+              autoComplete="off"
+            />
+            <button type="submit" className="promote-btn" disabled={promoting || !adminCode.trim()}>
+              {promoting ? 'בודק...' : 'אישור'}
+            </button>
+          </div>
+          {promoteError && (
+            <div className="promote-error" role="alert">
+              {promoteError}
+              <button type="button" onClick={() => dispatch(clearPromoteError())}>✕</button>
+            </div>
+          )}
+        </form>
+      )}
+
+      {extendError && (
+        <div className="personal-notification error">
+          <span>{extendError}</span>
+          <button onClick={() => dispatch(clearExtendError())}>✕</button>
+        </div>
+      )}
       {successMsg && (
         <div className="personal-notification success">
           <span>{successMsg}</span>
@@ -129,8 +189,10 @@ const PersonalAreaPage = () => {
             </thead>
             <tbody>
               {loans.map(loan => {
-                const book = loan.book as Book
+                const book = loan.book
                 const isActive = loan.status === 'active'
+                const bookTitle = !book ? 'ספר לא קיים' : typeof book === 'string' ? book : book.title
+                const bookAuthor = book && typeof book !== 'string' ? book.author : null
                 return (
                   <tr
                     key={loan._id}
@@ -138,11 +200,9 @@ const PersonalAreaPage = () => {
                     onClick={isActive ? () => openLoanModal(loan) : undefined}
                   >
                     <td>
-                      <div className="loan-book-title">
-                        {typeof book === 'string' ? book : book.title}
-                      </div>
-                      {typeof book !== 'string' && book.author && (
-                        <div className="loan-book-author">{book.author}</div>
+                      <div className="loan-book-title">{bookTitle}</div>
+                      {bookAuthor && (
+                        <div className="loan-book-author">{bookAuthor}</div>
                       )}
                     </td>
                     <td>{fmt(loan.loanDate)}</td>
@@ -151,16 +211,32 @@ const PersonalAreaPage = () => {
                       <span className={`loan-status ${loan.status}`}>
                         {isActive ? 'מושאל' : 'הוחזר'}
                       </span>
+                      {isActive && loan.extensionsCount > 0 && (
+                        <div className="loan-extensions-hint">הוארך {loan.extensionsCount}/{MAX_EXTENSIONS}</div>
+                      )}
                     </td>
                     <td onClick={e => e.stopPropagation()}>
                       {isActive && (
-                        <button
-                          className="return-btn"
-                          disabled={returningId === loan._id}
-                          onClick={() => handleReturn(loan._id)}
-                        >
-                          {returningId === loan._id ? 'מעבד...' : 'החזר'}
-                        </button>
+                        <div className="loan-actions">
+                          {loan.extensionsCount < MAX_EXTENSIONS ? (
+                            <button
+                              className="extend-btn"
+                              disabled={extendingId === loan._id}
+                              onClick={() => handleExtend(loan._id)}
+                            >
+                              {extendingId === loan._id ? 'מעבד...' : 'הארך'}
+                            </button>
+                          ) : (
+                            <span className="extend-limit-hint">מיצה הארכות</span>
+                          )}
+                          <button
+                            className="return-btn"
+                            disabled={returningId === loan._id}
+                            onClick={() => handleReturn(loan._id)}
+                          >
+                            {returningId === loan._id ? 'מעבד...' : 'החזר'}
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>
@@ -178,6 +254,9 @@ const PersonalAreaPage = () => {
           activeLoanId={selectedLoan._id}
           onReturn={handleReturn}
           returning={returningId === selectedLoan._id}
+          onExtend={handleExtend}
+          extending={extendingId === selectedLoan._id}
+          extensionsCount={selectedLoan.extensionsCount}
         />
       )}
     </main>

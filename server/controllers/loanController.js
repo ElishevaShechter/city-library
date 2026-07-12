@@ -1,6 +1,9 @@
 const Loan = require('../models/Loan');
 const Book = require('../models/Book');
 
+const MAX_EXTENSIONS = 2;
+const EXTENSION_DAYS = 14;
+
 // POST /api/loans
 const createLoan = async (req, res) => {
     try {
@@ -104,10 +107,52 @@ const returnLoan = async (req, res) => {
         // מעלה עותק פנוי
         await Book.findByIdAndUpdate(loan.book, { $inc: { availableCopies: 1 } });
 
+        // מאכלס book/user כדי שהלקוח יוכל להציג שם/כותרת ולא רק מזהה גולמי
+        await loan.populate('book', 'title author coverImage');
+        await loan.populate('user', 'name email');
         res.json(loan);
     } catch (err) {
         res.status(500).json({ message: 'Server error', error: err.message });
     }
 };
 
-module.exports = { createLoan, getMyLoans, getAllLoans, returnLoan };
+// PATCH /api/loans/:id/extend
+const extendLoan = async (req, res) => {
+    try {
+        const loan = await Loan.findById(req.params.id);
+
+        if (!loan) {
+            return res.status(404).json({ message: 'Loan not found' });
+        }
+
+        // מוודא שהמשתמש מאריך השאלה שלו בלבד (אלא אם admin)
+        if (loan.user.toString() !== req.user.id && req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        if (loan.status === 'returned') {
+            return res.status(400).json({ message: 'Book already returned' });
+        }
+
+        if (loan.extensionsCount >= MAX_EXTENSIONS) {
+            return res.status(400).json({ message: 'Extension limit reached' });
+        }
+
+        // מאריך ב-14 יום מתאריך ההחזרה הנוכחי (ולא מהיום) - כך המשתמש מקבל תמיד את אותה תוספת זמן
+        // קבועה, ללא תלות במועד שבו הוא בפועל מבקש את ההארכה
+        const newDueDate = new Date(loan.dueDate);
+        newDueDate.setDate(newDueDate.getDate() + EXTENSION_DAYS);
+
+        loan.dueDate = newDueDate;
+        loan.extensionsCount += 1;
+        await loan.save();
+
+        await loan.populate('book', 'title author coverImage');
+        await loan.populate('user', 'name email');
+        res.json(loan);
+    } catch (err) {
+        res.status(500).json({ message: 'Server error', error: err.message });
+    }
+};
+
+module.exports = { createLoan, getMyLoans, getAllLoans, returnLoan, extendLoan };

@@ -38,6 +38,7 @@ const BooksPage = () => {
 
   const getActiveLoan = (bookId: string): Loan | undefined =>
     loans.find(l => {
+      if (!l.book) return false
       const loanBookId = typeof l.book === 'string' ? l.book : l.book._id
       return loanBookId === bookId && l.status === 'active'
     })
@@ -60,8 +61,9 @@ const BooksPage = () => {
     const result = await dispatch(returnBook(loanId))
     setReturningId(null)
     if (returnBook.fulfilled.match(result)) {
-      const bookId = typeof result.payload.book === 'string' ? result.payload.book : result.payload.book._id
-      const title = books.find(b => b._id === bookId)?.title ?? 'הספר'
+      const returnedBook = result.payload.book
+      const bookId = !returnedBook ? null : typeof returnedBook === 'string' ? returnedBook : returnedBook._id
+      const title = (bookId && books.find(b => b._id === bookId)?.title) ?? 'הספר'
       setSuccessMsg(`"${title}" הוחזר בהצלחה`)
       setSelected(null)
     }

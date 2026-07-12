@@ -38,6 +38,7 @@ const SignupPage = () => {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [adminCode, setAdminCode] = useState('')
   const [fieldErrors, setFieldErrors] = useState<FormErrors>({})
 
   const handleSubmit = async (e: FormEvent) => {
@@ -51,9 +52,14 @@ const SignupPage = () => {
     }
     setFieldErrors({})
 
-    const result = await dispatch(signupUser({ name: name.trim(), email: email.trim(), password }))
+    const result = await dispatch(signupUser({
+      name: name.trim(),
+      email: email.trim(),
+      password,
+      adminCode: adminCode.trim() || undefined,
+    }))
     if (signupUser.fulfilled.match(result)) {
-      navigate('/')
+      navigate(result.payload.user.role === 'admin' ? '/admin' : '/')
     }
   }
 
@@ -126,6 +132,18 @@ const SignupPage = () => {
             {fieldErrors.password && (
               <span className="field-error" role="alert">{fieldErrors.password}</span>
             )}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="adminCode">קוד מנהל (אופציונלי)</label>
+            <input
+              id="adminCode"
+              type="password"
+              value={adminCode}
+              onChange={e => setAdminCode(e.target.value)}
+              placeholder="להרשמה כחבר רגיל השאירו ריק"
+              autoComplete="off"
+            />
           </div>
 
           <button type="submit" className="btn-submit" disabled={loading}>

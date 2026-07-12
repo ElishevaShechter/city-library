@@ -49,6 +49,105 @@
   font-weight: 600;
 }
 
+/* Promote to admin */
+.promote-card {
+  background: white;
+  border-radius: 14px;
+  padding: 1.1rem 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 10px rgba(74, 111, 165, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.promote-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.promote-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #2c3e6b;
+}
+
+.promote-hint {
+  font-size: 0.8rem;
+  color: #9a9ab0;
+}
+
+.promote-controls {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.promote-input {
+  padding: 0.5rem 0.85rem;
+  border: 1.5px solid #dce4f0;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  width: 160px;
+}
+
+.promote-input:focus {
+  outline: none;
+  border-color: #4a6fa5;
+}
+
+.promote-btn {
+  padding: 0.5rem 1.1rem;
+  border: none;
+  border-radius: 8px;
+  background: #4a6fa5;
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.promote-btn:hover:not(:disabled) {
+  background: #3a5d8e;
+}
+
+.promote-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.promote-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.5rem 0.85rem;
+  border-radius: 8px;
+  background: #fff0f0;
+  border: 1px solid #f5c6c6;
+  color: #b84040;
+  font-size: 0.8rem;
+}
+
+.promote-error button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.6;
+}
+
+.promote-error button:hover {
+  opacity: 1;
+}
+
 /* Loans section header */
 .loans-section-header {
   display: flex;
@@ -174,6 +273,19 @@
   color: #2e7d52;
 }
 
+/* Loan actions */
+.loan-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.loan-extensions-hint {
+  font-size: 0.75rem;
+  color: #9a9ab0;
+  margin-top: 0.15rem;
+}
+
 /* Return button */
 .return-btn {
   padding: 0.3rem 0.85rem;
@@ -197,6 +309,37 @@
 .return-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+/* Extend button */
+.extend-btn {
+  padding: 0.3rem 0.85rem;
+  border: 1.5px solid #cdd9f2;
+  border-radius: 8px;
+  background: #eef2fb;
+  color: #4a6fa5;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  white-space: nowrap;
+}
+
+.extend-btn:hover:not(:disabled) {
+  background: #dfe7fa;
+  transform: translateY(-1px);
+}
+
+.extend-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.extend-limit-hint {
+  font-size: 0.75rem;
+  color: #b84040;
+  white-space: nowrap;
 }
 
 /* Clickable row */
@@ -225,6 +368,12 @@
   background: #edfaf3;
   border: 1px solid #b2e8cc;
   color: #2e7d52;
+}
+
+.personal-notification.error {
+  background: #fff0f0;
+  border: 1px solid #f5c6c6;
+  color: #b84040;
 }
 
 .personal-notification button {

@@ -1,17 +1,22 @@
 import { useEffect } from 'react'
 import type { Book, Category } from '../types'
 
+const MAX_EXTENSIONS = 2
+
 interface Props {
   book: Book
   onClose: () => void
   activeLoanId?: string
   onBorrow?: () => void
   onReturn?: (loanId: string) => void
+  onExtend?: (loanId: string) => void
   borrowing?: boolean
   returning?: boolean
+  extending?: boolean
+  extensionsCount?: number
 }
 
-const BookModal = ({ book, onClose, activeLoanId, onBorrow, onReturn, borrowing, returning }: Props) => {
+const BookModal = ({ book, onClose, activeLoanId, onBorrow, onReturn, onExtend, borrowing, returning, extending, extensionsCount }: Props) => {
   const categoryName = typeof book.category === 'object' ? (book.category as Category).name : ''
   const isAvailable = book.availableCopies > 0
 
@@ -23,6 +28,8 @@ const BookModal = ({ book, onClose, activeLoanId, onBorrow, onReturn, borrowing,
 
   const showBorrow = !activeLoanId && isAvailable && onBorrow
   const showReturn = !!activeLoanId && onReturn
+  const canExtend = (extensionsCount ?? 0) < MAX_EXTENSIONS
+  const showExtend = !!activeLoanId && onExtend && canExtend
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -61,13 +68,25 @@ const BookModal = ({ book, onClose, activeLoanId, onBorrow, onReturn, borrowing,
               </span>
             )}
           </div>
+          {activeLoanId && (
+            <div className="modal-row">
+              <span className="modal-label">הארכות</span>
+              <span>{extensionsCount ?? 0} מתוך {MAX_EXTENSIONS}</span>
+            </div>
+          )}
         </div>
 
         {book.description && (
           <p className="modal-description">{book.description}</p>
         )}
 
-        {(showBorrow || showReturn) && (
+        {!!activeLoanId && !canExtend && (
+          <p className="modal-extend-limit-hint">
+            הגעת למגבלת ההארכות המותרת ({MAX_EXTENSIONS}) — יש להחזיר את הספר
+          </p>
+        )}
+
+        {(showBorrow || showReturn || showExtend) && (
           <div className="modal-actions">
             {showBorrow && (
               <button
@@ -76,6 +95,15 @@ const BookModal = ({ book, onClose, activeLoanId, onBorrow, onReturn, borrowing,
                 onClick={onBorrow}
               >
                 {borrowing ? 'מעבד...' : 'השאל'}
+              </button>
+            )}
+            {showExtend && (
+              <button
+                className="modal-btn modal-btn-extend"
+                disabled={!!extending}
+                onClick={() => onExtend!(activeLoanId!)}
+              >
+                {extending ? 'מעבד...' : 'הארך השאלה'}
               </button>
             )}
             {showReturn && (

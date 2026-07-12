@@ -12,3 +12,6 @@ export const getAllLoans = () =>
 
 export const returnLoan = (loanId: string) =>
   api.patch<Loan>(`/loans/${loanId}/return`)
+
+export const extendLoan = (loanId: string) =>
+  api.patch<Loan>(`/loans/${loanId}/extend`)

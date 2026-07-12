@@ -395,3 +395,20 @@
   background: #d4f0e0;
   transform: translateY(-1px);
 }
+
+.modal-btn-extend {
+  background: #eef2fb;
+  color: #4a6fa5;
+  border: 1.5px solid #cdd9f2;
+}
+
+.modal-btn-extend:hover:not(:disabled) {
+  background: #dfe7fa;
+  transform: translateY(-1px);
+}
+
+.modal-extend-limit-hint {
+  font-size: 0.85rem;
+  color: #b84040;
+  margin-bottom: 0.75rem;
+}

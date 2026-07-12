@@ -28,6 +28,10 @@ const loanSchema = new mongoose.Schema({
         enum: ['active', 'returned'],
         default: 'active',
     },
+    extensionsCount: {
+        type: Number,
+        default: 0,
+    },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Loan', loanSchema);

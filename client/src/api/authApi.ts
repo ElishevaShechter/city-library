@@ -6,3 +6,6 @@ export const login = (credentials: LoginCredentials) =>
 
 export const signup = (data: SignupData) =>
   api.post<AuthResponse>('/auth/signup', data)
+
+export const promote = (adminCode: string) =>
+  api.patch<AuthResponse>('/auth/promote', { adminCode })

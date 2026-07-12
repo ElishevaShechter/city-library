@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createLoan, getMyLoans, getAllLoans, returnLoan } = require('../controllers/loanController');
+const { createLoan, getMyLoans, getAllLoans, returnLoan, extendLoan } = require('../controllers/loanController');
 const { protect, adminOnly } = require('../middleware/authMiddleware');
 
 /**
@@ -93,5 +93,31 @@ router.get('/', protect, adminOnly, getAllLoans);
  *         description: Loan not found
  */
 router.patch('/:id/return', protect, returnLoan);
+
+/**
+ * @swagger
+ * /api/loans/{id}/extend:
+ *   patch:
+ *     summary: Extend (renew) a borrowed book's due date by 14 days
+ *     tags: [Loans]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Loan updated with a dueDate extended by 14 days and extensionsCount incremented
+ *       400:
+ *         description: Book already returned or extension limit (2) reached
+ *       403:
+ *         description: Not your loan
+ *       404:
+ *         description: Loan not found
+ */
+router.patch('/:id/extend', protect, extendLoan);
 
 module.exports = router;

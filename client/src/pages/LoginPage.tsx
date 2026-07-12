@@ -44,7 +44,7 @@ const LoginPage = () => {
 
     const result = await dispatch(loginUser({ email: email.trim(), password }))
     if (loginUser.fulfilled.match(result)) {
-      navigate('/')
+      navigate(result.payload.user.role === 'admin' ? '/admin' : '/')
     }
   }
 

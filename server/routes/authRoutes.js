@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { signup, login } = require('../controllers/authController');
+const { signup, login, promote } = require('../controllers/authController');
+const { protect } = require('../middleware/authMiddleware');
 
 /**
  * @swagger
@@ -62,5 +63,33 @@ router.post('/signup', signup);
  *         description: Invalid email or password
  */
 router.post('/login', login);
+
+/**
+ * @swagger
+ * /api/auth/promote:
+ *   patch:
+ *     summary: Upgrade the logged-in user's own account to admin using a secret admin code
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [adminCode]
+ *             properties:
+ *               adminCode:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Account upgraded to admin, returns a fresh token and user info
+ *       400:
+ *         description: Invalid admin code
+ *       401:
+ *         description: Not authorized, missing/invalid token
+ */
+router.patch('/promote', protect, promote);
 
 module.exports = router;
