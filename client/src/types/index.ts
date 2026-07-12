@@ -16,6 +16,8 @@ export interface Book {
   _id: string
   title: string
   author: string
+  isbn?: string
+  publisher?: string
   category: Category | string
   description?: string
   publishedYear?: number
@@ -26,14 +28,32 @@ export interface Book {
   updatedAt: string
 }
 
+export interface BookHistoryChange {
+  field: string
+  oldValue: unknown
+  newValue: unknown
+}
+
+export interface BookHistoryEntry {
+  _id: string
+  book: string
+  action: 'created' | 'updated' | 'copies_added' | 'deleted'
+  changes: BookHistoryChange[]
+  performedBy: { _id: string; name: string; email: string } | string
+  createdAt: string
+  updatedAt: string
+}
+
 export interface Loan {
   _id: string
-  user: User | string
-  book: Book | string
+  // null כאשר המשתמש/הספר המקושרים נמחקו מה-DB
+  user: User | string | null
+  book: Book | string | null
   loanDate: string
   dueDate: string
   returnDate: string | null
   status: 'active' | 'returned'
+  extensionsCount: number
   createdAt: string
   updatedAt: string
 }
@@ -47,6 +67,7 @@ export interface SignupData {
   name: string
   email: string
   password: string
+  adminCode?: string
 }
 
 // צורת התגובה בפועל מהשרת — מחזיר id ולא _id

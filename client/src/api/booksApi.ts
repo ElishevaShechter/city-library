@@ -1,5 +1,5 @@
 import api from './index'
-import type { Book } from '../types'
+import type { Book, BookHistoryEntry } from '../types'
 
 export const getBooks = (params?: { search?: string; category?: string }) =>
   api.get<Book[]>('/books', { params })
@@ -15,3 +15,6 @@ export const updateBook = (id: string, data: Partial<Book>) =>
 
 export const deleteBook = (id: string) =>
   api.delete(`/books/${id}`)
+
+export const getBookHistory = (id: string) =>
+  api.get<BookHistoryEntry[]>(`/books/${id}/history`)

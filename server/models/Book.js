@@ -11,6 +11,16 @@ const bookSchema = new mongoose.Schema({
         required: true,
         trim: true,
     },
+    isbn: {
+        type: String,
+        trim: true,
+        unique: true,
+        sparse: true,
+    },
+    publisher: {
+        type: String,
+        trim: true,
+    },
     category: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Category',

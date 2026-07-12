@@ -1,0 +1,217 @@
+.loans-table th:first-child,
+.loans-table td:first-child {
+  min-width: 140px;
+}
+
+/* Tabs */
+.admin-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1.5px solid #eef0fa;
+}
+
+.admin-tab-btn {
+  padding: 0.6rem 1.1rem;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 0.925rem;
+  font-weight: 600;
+  color: #9a9ab0;
+  cursor: pointer;
+  border-bottom: 2.5px solid transparent;
+  margin-bottom: -1.5px;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.admin-tab-btn:hover {
+  color: #4a6fa5;
+}
+
+.admin-tab-btn.active {
+  color: #4a6fa5;
+  border-bottom-color: #4a6fa5;
+}
+
+/* Catalog toolbar */
+.catalog-toolbar {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.catalog-search {
+  flex: 1;
+  min-width: 220px;
+}
+
+.catalog-add-btn {
+  padding: 0.6rem 1.25rem;
+  border: none;
+  border-radius: 10px;
+  background: #4a6fa5;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  white-space: nowrap;
+}
+
+.catalog-add-btn:hover {
+  background: #3a5d8e;
+  transform: translateY(-1px);
+}
+
+/* Delete button */
+.catalog-delete-btn {
+  padding: 0.3rem 0.85rem;
+  border: 1.5px solid #f5c6c6;
+  border-radius: 8px;
+  background: #fff0f0;
+  color: #b84040;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  white-space: nowrap;
+}
+
+.catalog-delete-btn:hover:not(:disabled) {
+  background: #ffe0e0;
+  transform: translateY(-1px);
+}
+
+.catalog-delete-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Book form modal */
+.catalog-modal {
+  max-width: 620px;
+}
+
+.catalog-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+@media (max-width: 560px) {
+  .catalog-form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-group select,
+.form-group textarea {
+  padding: 0.75rem 1rem;
+  border: 1.5px solid #dce4f0;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: #fafbff;
+  font-family: inherit;
+  color: #3d3d50;
+  resize: vertical;
+}
+
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #4a6fa5;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.12);
+}
+
+.field-hint {
+  font-size: 0.775rem;
+  color: #9a9ab0;
+}
+
+/* History */
+.catalog-history {
+  margin-top: 1.5rem;
+  border-top: 1px solid #eef0fa;
+  padding-top: 1rem;
+}
+
+.catalog-history-toggle {
+  background: none;
+  border: none;
+  color: #4a6fa5;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.catalog-history-loading {
+  color: #9a9ab0;
+  font-size: 0.85rem;
+  margin-top: 0.75rem;
+}
+
+.catalog-history-list {
+  list-style: none;
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.catalog-history-item {
+  background: #f7f8fd;
+  border-radius: 10px;
+  padding: 0.6rem 0.85rem;
+}
+
+.catalog-history-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.catalog-history-action {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.1rem 0.55rem;
+  border-radius: 20px;
+  background: #eef2fb;
+  color: #4a6fa5;
+}
+
+.catalog-history-action.deleted {
+  background: #fff0f0;
+  color: #b84040;
+}
+
+.catalog-history-action.copies_added {
+  background: #edfaf3;
+  color: #2e7d52;
+}
+
+.catalog-history-meta {
+  font-size: 0.775rem;
+  color: #9a9ab0;
+}
+
+.catalog-history-changes {
+  list-style: none;
+  margin-top: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.8rem;
+  color: #5a6580;
+}
